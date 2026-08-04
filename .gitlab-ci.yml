@@ -1,0 +1,77 @@
+# Build the Zola site on GitLab CI and publish it to GitHub Pages.
+#
+# Required CI/CD variables (Settings > CI/CD > Variables):
+#   GITHUB_TOKEN  - GitHub PAT with `repo` (or fine-grained Contents: write)
+#                   scope. Mark it Masked *and* Protected.
+#   GITHUB_REPO   - target repo as "owner/name", e.g. tbar4/norion-analytics-site
+#
+# Optional:
+#   PAGES_BRANCH          - branch GitHub Pages serves from (default: gh-pages)
+#   PAGES_CUSTOM_DOMAIN   - written to CNAME; leave empty to skip
+
+stages:
+  - build
+  - deploy
+
+variables:
+  ZOLA_VERSION: "0.22.1"
+  ZOLA_CONFIG: "zola.toml"
+  PAGES_BRANCH: "gh-pages"
+  PAGES_CUSTOM_DOMAIN: "norionanalytics.com"
+  # The theme lives under themes/. If it is ever converted to a real git
+  # submodule, this makes CI fetch it.
+  GIT_SUBMODULE_STRATEGY: recursive
+
+build:
+  stage: build
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache curl tar
+    - |
+      curl -sSfL \
+        "https://github.com/getzola/zola/releases/download/v${ZOLA_VERSION}/zola-v${ZOLA_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
+        | tar xz -C /usr/local/bin
+    - zola --version
+  script:
+    - zola --config "$ZOLA_CONFIG" build --output-dir public --force
+    # Stop GitHub Pages from running the output through Jekyll.
+    - touch public/.nojekyll
+    - |
+      if [ -n "$PAGES_CUSTOM_DOMAIN" ]; then
+        echo "$PAGES_CUSTOM_DOMAIN" > public/CNAME
+      fi
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+deploy:
+  stage: deploy
+  image: alpine:3.20
+  needs: ["build"]
+  # Never let two pipelines force-push the Pages branch at the same time.
+  resource_group: github-pages
+  before_script:
+    - apk add --no-cache git
+  script:
+    - |
+      if [ -z "$GITHUB_TOKEN" ] || [ -z "$GITHUB_REPO" ]; then
+        echo "GITHUB_TOKEN and GITHUB_REPO must be set as CI/CD variables." >&2
+        exit 1
+      fi
+    # The published branch holds generated output only, so each deploy replaces
+    # it with a single fresh commit rather than accumulating history.
+    - cd public
+    - git init -q -b "$PAGES_BRANCH"
+    - git add -A
+    - |
+      git -c user.email="ci@norionanalytics.com" \
+          -c user.name="GitLab CI" \
+          commit -q -m "Deploy ${CI_COMMIT_SHORT_SHA} from ${CI_PROJECT_PATH}"
+    - git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPO}.git" "$PAGES_BRANCH"
+    - echo "Published to https://github.com/${GITHUB_REPO} (${PAGES_BRANCH})"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
