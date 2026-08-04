@@ -1,0 +1,66 @@
+# Build the Zola site and publish it to GitHub Pages.
+#
+# One-time setup: Settings > Pages > Build and deployment > Source: GitHub Actions.
+# No tokens or secrets are needed — Pages deploys via the workflow's OIDC token.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  ZOLA_VERSION: "0.22.1"
+  ZOLA_CONFIG: "zola.toml"
+  PAGES_CUSTOM_DOMAIN: "norionanalytics.com"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let an in-flight deploy finish rather than cancelling it mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Zola
+        run: |
+          curl -sSfL \
+            "https://github.com/getzola/zola/releases/download/v${ZOLA_VERSION}/zola-v${ZOLA_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
+            | sudo tar xz -C /usr/local/bin
+          zola --version
+
+      - name: Build
+        run: zola --config "$ZOLA_CONFIG" build --output-dir public --force
+
+      - name: Add Pages metadata
+        run: |
+          touch public/.nojekyll
+          if [ -n "$PAGES_CUSTOM_DOMAIN" ]; then
+            echo "$PAGES_CUSTOM_DOMAIN" > public/CNAME
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    # Pull requests get a build check only; publishing happens from main.
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
