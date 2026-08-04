@@ -16,7 +16,7 @@ build_search_index = false
 # Put all your custom variables here
 name = { first = "Norion Analytics", last = "" }
 description = "Data Ontologies for Space Domain Awareness"
-sections = ["info"]
+sections = ["info", "ai"]
 
 links = [
    { icon = "fa-solid fa-envelope", url = "mailto:trevor@norionanalytics.com" },
