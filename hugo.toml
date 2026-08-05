@@ -23,10 +23,10 @@ enableRobotsTXT = true
 
 [params]
   # theme: light | dark | auto — see themes/not-much/configuration.md
-  theme = "auto"
+  theme = "light"
   # palette: catpuccin | default | dracula | eink | solarized
   palette = "default"
-  showThemeNotice = true
+  showThemeNotice = false
   showPostsSummary = true
   showFooterEverywhere = true
   description = "Data ontologies for space domain awareness."
@@ -40,12 +40,12 @@ enableRobotsTXT = true
     url = "/"
     weight = 1
 
-  [[menu.main]]
-    identifier = "posts"
-    name = "posts"
-    title = "Posts"
-    url = "/posts"
-    weight = 2
+#  [[menu.main]]
+#    identifier = "posts"
+#    name = "posts"
+#    title = "Posts"
+#    url = "/posts"
+#    weight = 2
 
   [[menu.main]]
     identifier = "about"
@@ -54,12 +54,12 @@ enableRobotsTXT = true
     url = "/about"
     weight = 3
 
-  [[menu.main]]
-    identifier = "tags"
-    name = "tags"
-    title = "Tags"
-    url = "/tags"
-    weight = 4
+#  [[menu.main]]
+#    identifier = "tags"
+#    name = "tags"
+#    title = "Tags"
+#    url = "/tags"
+#    weight = 4
 
   [[menu.main]]
     identifier = "contact"
