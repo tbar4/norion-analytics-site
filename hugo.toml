@@ -1,0 +1,69 @@
+baseURL = "https://norionanalytics.com/"
+languageCode = "en-us"
+title = "Norion Analytics"
+theme = "not-much"
+copyright = "© {year} Norion Analytics"
+
+# Drafts and future-dated posts stay out of the production build.
+buildDrafts = false
+buildFuture = false
+
+enableRobotsTXT = true
+
+[pagination]
+  pagerSize = 10
+
+[markup]
+  [markup.highlight]
+    style = "dracula"
+    noClasses = false
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[params]
+  # theme: light | dark | auto — see themes/not-much/configuration.md
+  theme = "auto"
+  # palette: catpuccin | default | dracula | eink | solarized
+  palette = "default"
+  showThemeNotice = true
+  showPostsSummary = true
+  showFooterEverywhere = true
+  description = "Data ontologies for space domain awareness."
+
+# Navigation
+[menu]
+  [[menu.main]]
+    identifier = "home"
+    name = "home"
+    title = "Home"
+    url = "/"
+    weight = 1
+
+  [[menu.main]]
+    identifier = "posts"
+    name = "posts"
+    title = "Posts"
+    url = "/posts"
+    weight = 2
+
+  [[menu.main]]
+    identifier = "about"
+    name = "about"
+    title = "About"
+    url = "/about"
+    weight = 3
+
+  [[menu.main]]
+    identifier = "tags"
+    name = "tags"
+    title = "Tags"
+    url = "/tags"
+    weight = 4
+
+  [[menu.main]]
+    identifier = "contact"
+    name = "contact"
+    title = "Contact"
+    url = "mailto:trevor@norionanalytics.com"
+    weight = 5

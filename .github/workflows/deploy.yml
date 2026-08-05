@@ -1,4 +1,4 @@
-# Build the Zola site and publish it to GitHub Pages.
+# Build the Hugo site and publish it to GitHub Pages.
 #
 # One-time setup: Settings > Pages > Build and deployment > Source: GitHub Actions.
 # No tokens or secrets are needed — Pages deploys via the workflow's OIDC token.
@@ -12,8 +12,8 @@ on:
   workflow_dispatch:
 
 env:
-  ZOLA_VERSION: "0.22.1"
-  ZOLA_CONFIG: "zola.toml"
+  # Hugo extended; >= 0.146 is required for the theme's layouts/_partials layout.
+  HUGO_VERSION: "0.158.0"
   PAGES_CUSTOM_DOMAIN: "norionanalytics.com"
 
 permissions:
@@ -26,21 +26,28 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Zola
+      - name: Install Hugo
         run: |
-          curl -sSfL \
-            "https://github.com/getzola/zola/releases/download/v${ZOLA_VERSION}/zola-v${ZOLA_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
-            | sudo tar xz -C /usr/local/bin
-          zola --version
+          wget -q -O "${RUNNER_TEMP}/hugo.deb" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          sudo dpkg -i "${RUNNER_TEMP}/hugo.deb"
+          hugo version
 
       - name: Build
-        run: zola --config "$ZOLA_CONFIG" build --output-dir public --force
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          HUGO_ENVIRONMENT: production
+        run: hugo --gc --minify --destination public
 
       - name: Add Pages metadata
         run: |
