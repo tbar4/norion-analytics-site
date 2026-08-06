@@ -47,12 +47,12 @@ enableRobotsTXT = true
 #    url = "/posts"
 #    weight = 2
 
-  [[menu.main]]
-    identifier = "about"
-    name = "about"
-    title = "About"
-    url = "/about"
-    weight = 3
+#  [[menu.main]]
+#    identifier = "about"
+#    name = "about"
+#    title = "About"
+#    url = "/about"
+#    weight = 3
 
 #  [[menu.main]]
 #    identifier = "tags"
